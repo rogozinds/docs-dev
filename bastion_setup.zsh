@@ -6,13 +6,11 @@ PROFILE=$1
 
 if [[ -z $PROFILE ]]; then
     echo "Please specify a profile."
-
     echo "Supported Profiles:"
-    for profile in $SUPPORTED_PROFILES; do
+    for profile in "${SUPPORTED_PROFILES[@]}"; do  # ✅ Fixed array loop
         echo "  - $profile"
     done
-
-    exit 1
+    return 1  # ✅ Use return instead of exit
 fi
 
 case $PROFILE in
@@ -48,7 +46,7 @@ case $PROFILE in
         ;;
     *)
         echo "Unknown profile: $PROFILE"
-        exit 1
+        return 1
         ;;
 esac
 

@@ -31,6 +31,9 @@ kubectl delete pvc data-loki-write-1 -n loki
 
 
 # Deployments to EKS
+## Check the deployments
+kubectl rollout restart deployment irriwatch-gitlab-runner -n gitlab
+
 ## Get the helm chart
 helm get values loki -n loki
 
@@ -38,6 +41,11 @@ helm get values loki -n loki
 kubectl -n loki exec -it loki-write-0 --sh 
 
 
+# Nodegroups & Autoscaling
 
+## List all node groups
+aws eks list-nodegroups --cluster-name monitoring-cluster
 
-.labels.host = get_env_var("HOSTNAME") ?? "unknown"
+## Desribe specific node group to check for tags
+aws eks describe-nodegroup --cluster-name monitoring-cluster  --nodegroup-name gitlab-runner
+
