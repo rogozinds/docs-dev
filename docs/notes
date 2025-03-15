@@ -1,0 +1,36 @@
+Gettig logs for autoscaler
+kubectl logs -n kube-system -l app.kubernetes.io/name=aws-cluster-autoscaler --tail=-1 > logs-autsocaler.txt
+
+The Registered ASG line is missing, we need to verify the tags of the autoscaler:
+
+```
+aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names eks-gitlab-runner-fecaca85-c536-7eed-3768-83bcbb8c5157 \
+  --query "AutoScalingGroups[*].[AutoScalingGroupName,Tags]" \
+  --output table
+```
+
+The autoscaling grou in aws has tags:
+
+k8s.io/cluster-autoscaler/enabled = true
+eks:nodegroup-name = gitlab-runner
+
+
+Checking that actually auto-scaler has the correct config:
+
+```
+kubectl describe pod -n kube-system -l app.kubernetes.io/name=aws-cluster-autoscaler | grep "Command" -A 20
+```
+It has the following tags, or auto discovery.
+--node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,eks:nodegroup-name=gitlab-runner
+
+In logs for autoscaler, I can see the Autoscaler detects the ASG 
+logs line- Registering ASG eks-gitlab-runner-fecaca85-c536-7eed-3768-83bcbb8c5157
+
+
+The problem was in missing permssions:
+            "eks:DescribeNodegroup",
+            "eks:ListNodegroups",
+            "eks:DescribeCluster",
+            "eks:ListClusters"
+There was error in autoscaler, that it could not access the nodegroup to get the nodes.
